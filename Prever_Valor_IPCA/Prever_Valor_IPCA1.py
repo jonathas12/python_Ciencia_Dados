@@ -74,7 +74,6 @@ class IPCAPredictor:
         self.data = data['IPCA']
         self.model_results = None
         self.performance_metrics = {}
-        # Parâmetros SARIMA (p,d,q)(P,D,Q,m) - baseados nas análises anteriores
         self.order = (1, 0, 0)
         self.seasonal_order = (1, 0, 1, 12)
 
@@ -89,7 +88,6 @@ class IPCAPredictor:
         mae = mean_absolute_error(test_data, predictions_on_test)
         self.performance_metrics = {'MAE': f"{mae:.4f}"}
         
-        # Treino final com todos os dados
         final_model = SARIMAX(self.data, order=self.order, seasonal_order=self.seasonal_order)
         self.model_results = final_model.fit(disp=False)
 
@@ -108,8 +106,6 @@ class IPCAPredictor:
         conf_int_df.columns = ['Limite Inferior', 'Limite Superior']
         
         return predictions_df, conf_int_df
-
-# ... (O restante do código, incluindo a geração de PDF e o front-end, permanece o mesmo) ...
 
 # ==============================================================================
 # 3. FUNÇÕES AUXILIARES (DOWNLOADS)
@@ -195,6 +191,14 @@ def main():
     if 'resultados' not in st.session_state:
         st.session_state.resultados = None
     
+    # CORREÇÃO: Reintroduzindo a função to_excel dentro do escopo da função main
+    @st.cache_data
+    def to_excel(df):
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=True, sheet_name='Resultados')
+        return output.getvalue()
+
     with st.sidebar:
         st.markdown(f"""
         <style>
@@ -298,7 +302,7 @@ def main():
         fig.add_trace(go.Scatter(x=ipca_historico.index, y=ipca_historico['IPCA'], mode='lines', name='IPCA Histórico', line=dict(color='blue')))
         if not previsoes.empty:
             fig.add_trace(go.Scatter(x=previsoes.index, y=previsoes['IPCA Previsto'], mode='lines', name='IPCA Previsto', line=dict(color='red', dash='dot'), hovertemplate = '<b>%{x|%m/%Y}</b><br>IPCA Previsto: %{y:.2f}%<extra></extra>'))
-            fig.add_trace(go.Scatter(x=previsoes.index.append(previsoes.index[::-1]), y=pd.concat([conf_interval['Limite Inferior'], conf_interval['Limite Superior'][::-1]]), fill='toself', fillcolor='rgba(255,0,0,0.1)', line=dict(color='rgba(255,255,255,0)'), name='Intervalo de Confiança', hoverinfo='skip'))
+            fig.add_trace(go.Scatter(x=previsoes.index.append(previsoes.index[::-1]), y=pd.concat([conf_interval['Limite Superior'], conf_interval['Limite Inferior'][::-1]]), fill='toself', fillcolor='rgba(255,0,0,0.1)', line=dict(color='rgba(255,255,255,0)'), name='Intervalo de Confiança', hoverinfo='skip'))
         fig.update_layout(title='IPCA Mensal: Histórico vs. Previsão', xaxis_title='Data', yaxis_title='Variação Mensal (%)', legend_title='Legenda', template='plotly_white')
         st.plotly_chart(fig, use_container_width=True)
         
