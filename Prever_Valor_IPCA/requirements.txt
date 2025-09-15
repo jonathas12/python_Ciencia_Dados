@@ -1,23 +1,6 @@
-# Arquivo: requirements.txt (Versão para Deploy Robusto)
-
-# Dependências de base para compilação e cálculo numérico
-# Devem ser instaladas primeiro
-numpy==1.26.4
-cython
-
-# Bibliotecas principais de manipulação de dados e ML
-pandas==2.2.2
-scikit-learn==1.5.0
-statsmodels==0.14.2 
-
-# A biblioteca problemática, agora com suas dependências já instaladas
-pmdarima==2.0.4
-
-# Framework da aplicação web
 streamlit
-
-# Bibliotecas para gráficos, dados e relatórios
-plotly
+pandas
+statsmodels
 python-bcb
 fpdf2
 kaleido
