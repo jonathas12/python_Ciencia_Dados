@@ -14,11 +14,11 @@ statsmodels==0.14.2
 pmdarima==2.0.4
 
 # Framework da aplicação web
-streamlit==1.49.1
+streamlit
 
 # Bibliotecas para gráficos, dados e relatórios
-plotly==6.3.0
-python-bcb==0.3.3
-fpdf2==2.8.4
-kaleido==1.1.0
-openpyxl==3.1.5
+plotly
+python-bcb
+fpdf2
+kaleido
+openpyxl
