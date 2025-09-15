@@ -39,7 +39,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from bcb import sgs
 from statsmodels.tsa.statespace.sarimax import SARIMAX
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 import numpy as np
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -86,7 +86,12 @@ class IPCAPredictor:
         
         predictions_on_test = model_fit.forecast(steps=len(test_data))
         mae = mean_absolute_error(test_data, predictions_on_test)
-        self.performance_metrics = {'MAE': f"{mae:.4f}"}
+        mape = mean_absolute_percentage_error(test_data, predictions_on_test) * 100
+
+        self.performance_metrics = {
+            'MAE': f"{mae:.4f}",
+            'MAPE': f"{mape:.2f}%"
+        }
         
         final_model = SARIMAX(self.data, order=self.order, seasonal_order=self.seasonal_order)
         self.model_results = final_model.fit(disp=False)
@@ -168,6 +173,11 @@ def gerar_relatorio_pdf(res, predictor, fig):
     pdf.chapter_title('4. Análise de Performance do Modelo')
     pdf.chapter_body("Métricas baseadas na performance do modelo ao prever os últimos 12 meses de dados históricos conhecidos.")
     pdf.metric("Erro Médio Absoluto (MAE):", predictor.performance_metrics.get('MAE', 'N/A'))
+    pdf.metric("Erro Percentual Médio (MAPE):", predictor.performance_metrics.get('MAPE', 'N/A'))
+    pdf.ln(5)
+    
+    pdf.set_font('Helvetica', 'B', 10)
+    pdf.cell(0, 5, "Diagnóstico Estatístico (Testes de Resíduos)", 0, 1)
     
     diagnostics = predictor.model_results.summary().tables[2]
     prob_q = diagnostics.data[1][1].strip()
@@ -191,7 +201,6 @@ def main():
     if 'resultados' not in st.session_state:
         st.session_state.resultados = None
     
-    # CORREÇÃO: Reintroduzindo a função to_excel dentro do escopo da função main
     @st.cache_data
     def to_excel(df):
         output = io.BytesIO()
@@ -224,9 +233,9 @@ def main():
         st.markdown("📧 <jonathasmarques@seplag.mt.gov.br>", unsafe_allow_html=True)
         st.markdown("---")
         st.subheader("Sobre o Projeto")
-        st.write("Esta aplicação utiliza um modelo de Machine Learning (SARIMA) para prever a inflação (IPCA).")
+        st.write("Esta aplicação utiliza um modelo de Machine Learning (SARIMA: Statsmodels) para prever a inflação (IPCA).")
 
-    st.title("🤖 Ferramenta de Previsão de IPCA")
+    st.title("🤖 Ferramenta de Previsão de IPCA com Machine Learning.")
     st.markdown("### Análise Preditiva da Inflação para Decisões Orçamentárias Estratégicas")
 
     if st.button("📈 Realizar Previsão com IPCA", type="primary"):
@@ -285,10 +294,8 @@ def main():
             diferenca_reais = valor_corrigido - res['valor_original']
             
             res.update({
-                'valor_corrigido': valor_corrigido,
-                'inflacao_acumulada_periodo': inflacao_acumulada_periodo,
-                'fator_acumulado': fator_acumulado,
-                'diferenca_reais': diferenca_reais
+                'valor_corrigido': valor_corrigido, 'inflacao_acumulada_periodo': inflacao_acumulada_periodo,
+                'fator_acumulado': fator_acumulado, 'diferenca_reais': diferenca_reais
             })
             
             st.metric("Valor Original (R$)", f"{res['valor_original']:,.2f}")
@@ -307,7 +314,6 @@ def main():
         st.plotly_chart(fig, use_container_width=True)
         
         st.subheader("Downloads")
-        
         tabela_historica = ipca_historico.copy().rename(columns={'IPCA': 'IPCA Histórico'})
         if not previsoes.empty:
             tabela_previsoes = previsoes[['IPCA Previsto']]
@@ -329,10 +335,11 @@ def main():
         prob_q = float(diagnostics.data[1][1].strip())
         prob_h = float(diagnostics.data[3][1].strip())
 
-        col_perf1, col_perf2, col_perf3 = st.columns(3)
-        col_perf1.metric(label="Erro Médio Absoluto (MAE)", value=predictor.performance_metrics.get('MAE', 'N/A'), help="Indica, em média, quantos pontos percentuais (p.p.) a previsão errou em relação ao valor real. Quanto menor, melhor.")
-        col_perf2.metric(label="Teste Ljung-Box - Prob(Q)", value=f"{prob_q:.2f}", help="Testa se os erros do modelo são aleatórios. Um valor > 0.05 (como este) é um ótimo sinal, indicando que o modelo capturou bem os padrões dos dados.")
-        col_perf3.metric(label="Teste de Heterocedasticidade - Prob(H)", value=f"{prob_h:.2f}", help="Testa se a variância dos erros é constante. Um valor > 0.05 (como este) é um bom sinal, indicando que o modelo é estável ao longo do tempo.")
+        col_perf1, col_perf2, col_perf3, col_perf4 = st.columns(4)
+        col_perf1.metric(label="Erro Médio Absoluto (MAE)", value=predictor.performance_metrics.get('MAE', 'N/A'), help="Indica, em média, quantos pontos percentuais (p.p.) a previsão errou. Quanto menor, melhor.")
+        col_perf2.metric(label="Erro Percentual Médio (MAPE)", value=predictor.performance_metrics.get('MAPE', 'N/A'), help="O erro percentual médio. Pode ser enganoso para valores de IPCA próximos de zero.")
+        col_perf3.metric(label="Teste Ljung-Box - Prob(Q)", value=f"{prob_q:.2f}", help="Testa se os erros são aleatórios. Um valor > 0.05 (ótimo) indica que o modelo capturou bem os padrões.")
+        col_perf4.metric(label="Teste de Heterocedasticidade - Prob(H)", value=f"{prob_h:.2f}", help="Testa se a variância dos erros é constante. Um valor > 0.05 (bom) indica que o modelo é estável.")
     
     else:
         st.info("👈 Configure os parâmetros na barra lateral e clique no botão para iniciar a análise.")
