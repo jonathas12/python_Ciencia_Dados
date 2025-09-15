@@ -1,7 +1,11 @@
-streamlit
-pandas
-statsmodels
-python-bcb
-fpdf2
-kaleido
-openpyxl
+# Arquivo: requirements.txt (Versão Final e Completa para Deploy)
+
+streamlit==1.38.0
+pandas==2.2.2
+plotly==5.22.0
+statsmodels==0.14.2
+scikit-learn==1.5.0
+python-bcb==0.2.0
+fpdf2==2.8.4
+kaleido==1.1.0
+openpyxl==3.1.5
