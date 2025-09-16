@@ -119,7 +119,9 @@ class IPCAPredictor:
 
 class PDF(FPDF):
     def header(self):
-        self.image('assets/logo-seplag.png', x=10, y=8, w=33)
+        logo_path = Path(__file__).parent / "assets" / "logo-seplag.png"
+        # converte para string porque FPDF espera str
+        self.image(str(logo_path), x=10, y=8, w=33)
         self.set_font('Helvetica', 'B', 20)
         self.cell(0, 10, 'Relatório de Projeção de IPCA', 0, 1, 'C')
         self.ln(20)
