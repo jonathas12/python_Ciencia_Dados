@@ -45,6 +45,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import io
 from fpdf import FPDF
+from pathlib import Path
 import statsmodels.api as sm
 
 
@@ -216,7 +217,8 @@ def main():
             }}
         </style>
         """, unsafe_allow_html=True)
-        st.image("assets/logo-seplag.png", width=150)
+        img_path = Path(__file__).parent / "assets" / "logo-seplag.png"
+        st.image(str(img_path), width=150)
         st.title("Parâmetros")
         valor_original = st.number_input("Valor a ser corrigido (R$)", min_value=0.01, step=10.0, format="%.2f", value=493.72)
         data_inicio_correcao = st.date_input("Data de Início da Correção", value=datetime(2024, 6, 1))
