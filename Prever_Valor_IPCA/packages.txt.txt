@@ -1,3 +1,0 @@
-build-essential
-libxml2-dev
-libxslt-dev
