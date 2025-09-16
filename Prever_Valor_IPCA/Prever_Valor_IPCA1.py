@@ -49,6 +49,13 @@ from pathlib import Path
 import statsmodels.api as sm
 
 
+# In[ ]:
+
+
+import plotly.io as pio
+pio.kaleido.scope.default_format = "png"
+
+
 # ### 2. BACK-END: LÓGICA DE DADOS E MACHINE LEARNING
 
 # In[ ]:
